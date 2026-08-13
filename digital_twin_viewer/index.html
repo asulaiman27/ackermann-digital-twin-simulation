@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Physics-Based Ackermann Vehicle Digital Twin</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene" aria-label="3D digital twin scene"></canvas>
+
+    <section class="panel" aria-label="Controls">
+      <div class="title-row">
+        <div>
+          <h1>Physics-Based Ackermann Vehicle Digital Twin</h1>
+          <p id="sourceLabel">Live F1TENTH 6-DOF simulation</p>
+        </div>
+      </div>
+
+      <div id="simulationControls">
+        <div class="transport">
+          <button id="simPlayPause" type="button">Pause</button>
+          <button id="simReset" type="button">Reset</button>
+        </div>
+
+        <div class="race-controls">
+          <label>F1TENTH track
+            <select id="raceTrack">
+              <option value="aut" selected>Austria</option>
+              <option value="esp">Barcelona</option>
+              <option value="gbr">Great Britain</option>
+              <option value="mco">Monaco</option>
+            </select>
+          </label>
+          <label>Camera view
+            <select id="cameraMode">
+              <option value="chase" selected>3rd-person chase</option>
+              <option value="top">Top-down 3D</option>
+              <option value="trackside">Trackside</option>
+            </select>
+          </label>
+          <label>Terrain
+            <select id="terrainType">
+              <option value="asphalt" selected>Dry asphalt</option>
+              <option value="wet-asphalt">Wet asphalt</option>
+              <option value="gravel">Gravel</option>
+              <option value="grass">Grass</option>
+              <option value="mud">Mud</option>
+              <option value="ice">Ice</option>
+            </select>
+          </label>
+          <button id="loadRaceTrack" type="button">Load track</button>
+          <span id="trackReadout">F1TENTH paths loading…</span>
+          <span id="terrainReadout">Dry asphalt · μ 0.70</span>
+        </div>
+
+        <section class="profile-panel" aria-labelledby="profileHeading">
+          <h2 id="profileHeading">Vehicle &amp; wind profiles</h2>
+          <div class="profile-controls">
+            <label>Vehicle model
+              <select id="modelPreset">
+                <option value="cc0-sports-a">Imported Sports Car A (CC0)</option>
+                <option value="cc0-sports-b">Imported Sports Car B (CC0)</option>
+                <option value="cc0-suv">Imported Performance SUV (CC0)</option>
+                <option value="race" selected>Race</option>
+                <option value="sedan">Sedan</option>
+                <option value="suv">SUV</option>
+                <option value="van">Van</option>
+              </select>
+            </label>
+            <label>Wind profile
+              <select id="windProfile">
+                <option value="calm" selected>Calm · 0 m/s</option>
+                <option value="light">Light breeze · 3 m/s</option>
+                <option value="moderate">Moderate wind · 7 m/s</option>
+                <option value="strong">Strong wind · 13 m/s</option>
+                <option value="storm">Storm · 22 m/s</option>
+                <option value="hurricane">Hurricane · 32 m/s</option>
+                <option value="custom">Custom aerodynamic settings</option>
+              </select>
+            </label>
+          </div>
+          <small class="profile-help">Profiles set wind intensity and direction; detailed aerodynamic fields remain editable below.</small>
+        </section>
+
+        <div class="parameter-grid">
+          <label>Surface μ<input id="mu" type="number" min="0.01" max="2" step="0.01" value="0.70"></label>
+          <label>Mass (kg)<input data-parameter="mass" type="number" min="0.05" step="0.01"></label>
+          <label>Wheelbase (m)<input data-parameter="wheelbase" type="number" min="0.05" step="0.001"></label>
+          <label>Yaw inertia<input data-parameter="yaw_inertia" type="number" min="0.0001" step="0.001"></label>
+          <label>Track width (m)<input data-parameter="track_width" type="number" min="0.03" step="0.001"></label>
+          <label>Cornering stiffness<input data-parameter="front_cornering_stiffness" type="number" min="0" step="0.1"></label>
+          <label>Longitudinal tire stiffness<input data-parameter="tire_longitudinal_stiffness" type="number" min="0" step="0.1"></label>
+          <label>Wheel radius (m)<input data-parameter="wheel_radius" type="number" min="0.005" step="0.001"></label>
+          <label>Wheel inertia<input data-parameter="wheel_inertia" type="number" min="0.00001" step="0.001"></label>
+          <label>Suspension stiffness<input data-parameter="suspension_stiffness" type="number" min="0" step="1"></label>
+          <label>Suspension damping<input data-parameter="suspension_damping" type="number" min="0" step="0.1"></label>
+          <label>COM height (m)<input data-parameter="com_height" type="number" min="0.01" step="0.001"></label>
+          <label>Longitudinal Cd<input data-parameter="aero_drag" type="number" min="0" max="3" step="0.01"></label>
+          <label>Crosswind Cd<input data-parameter="aero_side_drag" type="number" min="0" max="4" step="0.01"></label>
+          <label>Air density (kg/m³)<input data-parameter="air_density" type="number" min="0" max="3" step="0.001"></label>
+          <label>Wind direction (deg)<input data-parameter="wind_direction_deg" type="number" min="-360" max="360" step="1"></label>
+          <label>Rolling resistance<input data-parameter="rolling_resistance" type="number" min="0" step="0.01"></label>
+          <label>Maximum speed (m/s)<input data-parameter="v_max" type="number" min="0.1" max="30" step="0.1"></label>
+        </div>
+
+        <section class="comparison-panel" aria-labelledby="comparisonModelsHeading">
+          <h2 id="comparisonModelsHeading">Compare models</h2>
+          <div class="comparison-controls">
+            <label>Model 1<select id="compareModel1"></select></label>
+            <label>Model 2<select id="compareModel2"></select></label>
+            <button id="compareModels" type="button">Compare models</button>
+          </div>
+        </section>
+
+        <section class="comparison-panel" aria-labelledby="comparisonTerrainsHeading">
+          <h2 id="comparisonTerrainsHeading">Compare terrains</h2>
+          <div class="comparison-controls">
+            <label>Terrain 1<select id="compareTerrain1"></select></label>
+            <label>Terrain 2<select id="compareTerrain2"></select></label>
+            <button id="compareTerrains" type="button">Compare terrains</button>
+          </div>
+          <small class="comparison-help">Uses the selected vehicle model on both terrains.</small>
+        </section>
+
+        <div class="force-options">
+          <span>Show forces</span>
+          <label><input type="checkbox" data-force="gravity" checked> gravity</label>
+          <label><input type="checkbox" data-force="normal_front" checked> normal</label>
+          <label><input type="checkbox" data-force="tire_front_lateral" checked> tires</label>
+          <label><input type="checkbox" data-force="tire_rear_longitudinal" checked> drive</label>
+          <label><input type="checkbox" data-force="rolling_resistance" checked> rolling</label>
+          <label><input type="checkbox" data-force="aerodynamic_drag" checked> drag</label>
+        </div>
+
+      </div>
+
+      <dl class="readout">
+        <div><dt>mode / status</dt><dd id="statusReadout">connecting</dd></div>
+        <div><dt>t</dt><dd id="tReadout">0.00 s</dd></div>
+        <div><dt>position</dt><dd id="posReadout">0.00, 0.00, 0.00</dd></div>
+        <div><dt>speed / yaw rate</dt><dd id="motionReadout">0.00 / 0.00</dd></div>
+        <div><dt>force / utilization</dt><dd id="forceReadout">0.00 N / 0%</dd></div>
+        <div><dt>wind</dt><dd id="windReadout">0.0 m/s @ 0°</dd></div>
+        <div><dt>force breakdown</dt><dd id="breakdownReadout">waiting</dd></div>
+        <div><dt>comparison</dt><dd id="comparisonReadout">none</dd></div>
+      </dl>
+    </section>
+
+    <aside id="comparisonLegend" class="comparison-legend" hidden aria-live="polite" aria-label="Comparison legend">
+      <h2>Comparison legend</h2>
+      <div id="comparisonLegendItems"></div>
+    </aside>
+  </main>
+
+  <script type="module" src="./three-setup.js"></script>
+</body>
+</html>
