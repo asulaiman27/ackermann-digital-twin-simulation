@@ -51,6 +51,8 @@ The project was built in layers:
   aerodynamic drag.
 - Local imported GLB vehicles and local Three.js dependencies.
 
+[![View simulation:](/Users/aman/Downloads/thumbnail.png)](https://drive.google.com/file/d/1-bWkXHimjhw6E3m6PvGVr5751TQSMXxj/view?usp=sharing)
+
 ## Requirements
 
 - Python 3.10 or newer
